@@ -52,6 +52,57 @@ header {
     letter-spacing: 2px;
 }
 
+/* Nouveau style de la barre de recherche */
+form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin: 30px auto;
+    max-width: 600px;
+    padding: 0 20px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 15px 20px;
+    font-size: 16px;
+    border: 2px solid #0F4C75;
+    border-radius: 50px;
+    background-color: rgba(15, 76, 117, 0.1);
+    color: white;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.search-input:focus {
+    background-color: rgba(15, 76, 117, 0.2);
+    box-shadow: 0 0 15px rgba(15, 76, 117, 0.3);
+    border-color: #1a7bbd;
+}
+
+form button {
+    padding: 15px 30px;
+    font-size: 16px;
+    color: white;
+    background-color: #0F4C75;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+form button:hover {
+    background-color: #1a7bbd;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(15, 76, 117, 0.4);
+}
+
 .collection {
     margin: 30px 0;
 }
@@ -130,7 +181,7 @@ h2 {
 }
 
 .carousel-btn:hover {
-    background: #0F4C75;
+    background: #1a7bbd;
 }
 
 .carousel-btn.prev { 
@@ -140,6 +191,7 @@ h2 {
 .carousel-btn.next { 
     right: 0; 
 }
+
 footer {
     background-color: #141414;
     padding: 60px 0;
@@ -237,5 +289,21 @@ footer a:hover {
     
     #colonne1, #colonne3 {
         padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    form {
+        flex-direction: column;
+        padding: 0 15px;
+    }
+    
+    .search-input {
+        padding: 12px 15px;
+    }
+    
+    form button {
+        width: 100%;
+        padding: 12px 20px;
     }
 }
