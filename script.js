@@ -1,5 +1,10 @@
 const CONFIG = {
-    urlAPI: 'https://api.themoviedb.org/3/movie/popular',
+    urlAPI: {
+        popular: 'https://api.themoviedb.org/3/movie/popular',
+        topRated: 'https://api.themoviedb.org/3/movie/top_rated',
+        upcoming: 'https://api.themoviedb.org/3/movie/upcoming',
+        nowPlaying: 'https://api.themoviedb.org/3/movie/now_playing'
+    },
     urlImages: 'https://image.tmdb.org/t/p/w500',
     cleAPI: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI2MjI1ZTgwMGVjNGE0YTFkZWU0N2QzNDY0M2MxZWZmNiIsIm5iZiI6MTczNDM1NTI5Mi45NzQwMDAyLCJzdWIiOiI2NzYwMjk1Y2FjYTM1NDllNTRmNjcxYmMiLCJzY29wZXMiOlsiYXBpX3JlYWQiXSwidmVyc2lvbiI6MX0.EG2ty48MQF_7e_It-2hS9ldOJIPZzCqk6CJBdRc5RM8'
 };
@@ -38,13 +43,9 @@ function creerCarteFilm(film) {
     return carte;
 }
 
-async function afficherFilms() {
+async function chargerFilms(url) {
     try {
-        let url = new URL(CONFIG.urlAPI);
-        url.searchParams.set('language', 'fr-FR');
-        url.searchParams.set('page', '1');
-
-        let reponse = await fetch(url, {
+        const reponse = await fetch(url, {
             method: 'GET',
             headers: {
                 'accept': 'application/json',
@@ -56,25 +57,116 @@ async function afficherFilms() {
             throw new Error(`Erreur HTTP: ${reponse.status}`);
         }
 
-        let donnees = await reponse.json();
-        let films = donnees.results.slice(0, 15);
+        const donnees = await reponse.json();
+        return donnees.results.slice(0, 15);
+    } catch (erreur) {
+        console.error('Erreur:', erreur);
+        return [];
+    }
+}
 
-        let carousels = document.querySelectorAll('.movie-carousel');
-        carousels.forEach(carousel => {
-            carousel.innerHTML = '';
+async function afficherFilmsParCategorie() {
+    try {
+        // Créer les URLs avec les paramètres
+        const urls = {
+            'Films à la une :': `${CONFIG.urlAPI.popular}?language=fr-FR&page=1`,
+            'Films les mieux notés :': `${CONFIG.urlAPI.topRated}?language=fr-FR&page=1`,
+            'Prochaines sorties :': `${CONFIG.urlAPI.upcoming}?language=fr-FR&page=1`,
+            'Films en salle :': `${CONFIG.urlAPI.nowPlaying}?language=fr-FR&page=1`
+        };
+
+        const collections = document.querySelector('.collections');
+        collections.innerHTML = ''; // Vider le contenu existant
+
+        // Créer une section pour chaque catégorie
+        for (const [categorie, url] of Object.entries(urls)) {
+            const films = await chargerFilms(url);
             
-            films.forEach(film => {
-                carousel.appendChild(creerCarteFilm(film));
-            });
-        });
+            if (films.length > 0) {
+                const section = document.createElement('section');
+                section.className = 'collection';
+                section.innerHTML = `
+                    <h2>${categorie}</h2>
+                    <div class="carousel-container">
+                        <button class="carousel-btn prev"><</button>
+                        <div class="movie-carousel"></div>
+                        <button class="carousel-btn next">></button>
+                    </div>
+                `;
+
+                const carousel = section.querySelector('.movie-carousel');
+                films.forEach(film => {
+                    carousel.appendChild(creerCarteFilm(film));
+                });
+
+                collections.appendChild(section);
+            }
+        }
+
+        // Réinitialiser les carousels après avoir ajouté le contenu
+        initialiserCarousels();
 
     } catch (erreur) {
         console.error('Erreur:', erreur);
-        document.querySelectorAll('.movie-carousel').forEach(carousel => {
-            carousel.innerHTML = '<p class="error-message">Impossible de charger les films.</p>';
-        });
+        document.querySelector('.collections').innerHTML = 
+            '<p class="error-message">Impossible de charger les catégories de films.</p>';
     }
 }
+
+
+
+
+
+
+async function afficherFilmsParCategorie() {
+    try {
+        // Créer les URLs avec les paramètres
+        const urls = {
+            'Films à la une :': `${CONFIG.urlAPI.popular}?language=fr-FR&page=1`,
+            'Films les mieux notés :': `${CONFIG.urlAPI.topRated}?language=fr-FR&page=1`,
+            'Prochaines sorties :': `${CONFIG.urlAPI.upcoming}?language=fr-FR&page=1`,
+            'Films en salle :': `${CONFIG.urlAPI.nowPlaying}?language=fr-FR&page=1`
+        };
+
+        const collections = document.querySelector('.collections');
+        collections.innerHTML = ''; // Vider le contenu existant
+
+        // Créer une section pour chaque catégorie
+        for (const [categorie, url] of Object.entries(urls)) {
+            const films = await chargerFilms(url);
+            
+            if (films.length > 0) {
+                const section = document.createElement('section');
+                section.className = 'collection';
+                section.innerHTML = `
+                    <h2>${categorie}</h2>
+                    <div class="carousel-container">
+                        <button class="carousel-btn prev"><</button>
+                        <div class="movie-carousel"></div>
+                        <button class="carousel-btn next">></button>
+                    </div>
+                `;
+
+                const carousel = section.querySelector('.movie-carousel');
+                films.forEach(film => {
+                    carousel.appendChild(creerCarteFilm(film));
+                });
+
+                collections.appendChild(section);
+            }
+        }
+
+        // Réinitialiser les carousels après avoir ajouté le contenu
+        initialiserCarousels();
+
+    } catch (erreur) {
+        console.error('Erreur:', erreur);
+        document.querySelector('.collections').innerHTML = 
+            '<p class="error-message">Impossible de charger les catégories de films.</p>';
+    }
+}
+
+
 
 function initialiserCarousels() {
     let conteneurs = document.querySelectorAll('.carousel-container');
@@ -119,6 +211,8 @@ function initialiserCarousels() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    afficherFilms();
-    initialiserCarousels();
+    afficherFilmsParCategorie();
 });
+
+
+
