@@ -10,61 +10,48 @@ const CONFIG = {
 };
 
 function creerCarteFilm(film) {
-    const carte = document.createElement('div');
-    carte.className = 'movie-card';
+    let carte = document.createElement('div');
+    carte.classList = 'movie-card';
 
-    const image = document.createElement('div');
-    image.className = 'movie-image';
-    
+    let image = document.createElement('div');
+    image.classList = 'movie-image';
+
     if (film.poster_path) {
         image.style.backgroundImage = `url(${CONFIG.urlImages}${film.poster_path})`;
     } else {
         image.classList.add('no-image');
     }
 
-    const titre = document.createElement('h3');
-    titre.className = 'movie-title';
-    titre.textContent = film.title.length > 30 ? film.title.slice(0, 27) + '...' : film.title;
-    titre.title = film.title;
+    let titre = document.createElement('h3');
+    titre.classList = 'movie-title';
+    titre.textContent = film.title;
 
-    const note = document.createElement('p');
-    note.className = 'movie-rating';
-    note.textContent = `⭐ ${Number(film.vote_average).toFixed(1)} / 10`;
+    let note = document.createElement('p');
+    note.classList = 'movie-rating';
+    note.textContent = `⭐ ${film.vote_average.toFixed(1)} / 10`;
 
-    carte.appendChild(image);
-    carte.appendChild(titre);
-    carte.appendChild(note);
-
+    carte.append(image, titre, note);
     return carte;
 }
 
-async function chargerFilms(endpoint, params = {}) {
-    try {
-        const url = new URL(endpoint);
-        url.searchParams.set('language', 'fr-FR');
-        url.searchParams.set('page', '1');
-        
-        // Ajouter les paramètres supplémentaires
-        Object.entries(params).forEach(([key, value]) => {
-            url.searchParams.set(key, value);
-        });
+async function chargerFilms(url, params = {}) {
+    let fullUrl = new URL(url);
+    Object.entries(params).forEach(([key, value]) => {
+        fullUrl.searchParams.set(key, value);
+    });
 
-        const reponse = await fetch(url, {
-            method: 'GET',
+    try {
+        let response = await fetch(fullUrl, {
             headers: {
-                'accept': 'application/json',
-                'Authorization': CONFIG.cleAPI
+                accept: 'application/json',
+                Authorization: CONFIG.cleAPI
             }
         });
 
-        if (!reponse.ok) {
-            throw new Error(`Erreur HTTP: ${reponse.status}`);
-        }
-
-        const donnees = await reponse.json();
-        return donnees.results.slice(0, 15);
-    } catch (erreur) {
-        console.error('Erreur:', erreur);
+        let data = await response.json();
+        return data.results.slice(0, 15);
+    } catch (error) {
+        console.error(error);
         return [];
     }
 }
@@ -72,65 +59,46 @@ async function chargerFilms(endpoint, params = {}) {
 async function remplirCarousel(carousel, films) {
     carousel.innerHTML = '';
     films.forEach(film => {
-        carousel.appendChild(creerCarteFilm(film));
+        let carte = creerCarteFilm(film);
+        carousel.appendChild(carte);
     });
 }
 
 function initialiserBoutonsCarousel(conteneur) {
-    const carousel = conteneur.querySelector('.movie-carousel');
-    const boutonPrecedent = conteneur.querySelector('.prev');
-    const boutonSuivant = conteneur.querySelector('.next');
+    let carousel = conteneur.querySelector('.movie-carousel');
+    let prev = conteneur.querySelector('.prev');
+    let next = conteneur.querySelector('.next');
 
-    if (boutonPrecedent) {
-        boutonPrecedent.addEventListener('click', () => {
+    if (prev) {
+        prev.addEventListener('click', () => {
             carousel.scrollBy({ left: -300, behavior: 'smooth' });
         });
     }
 
-    if (boutonSuivant) {
-        boutonSuivant.addEventListener('click', () => {
+    if (next) {
+        next.addEventListener('click', () => {
             carousel.scrollBy({ left: 300, behavior: 'smooth' });
         });
     }
 
-    if (carousel) {
-        carousel.addEventListener('scroll', () => {
-            if (boutonPrecedent) {
-                boutonPrecedent.style.display = 
-                    carousel.scrollLeft > 0 ? 'block' : 'none';
-            }
-            if (boutonSuivant) {
-                const estALaFin = carousel.scrollLeft >= 
-                    (carousel.scrollWidth - carousel.clientWidth - 10);
-                boutonSuivant.style.display = estALaFin ? 'none' : 'block';
-            }
-        });
-    }
+    
 }
 
 async function initialiserCollection(collection) {
-    const carousel = collection.querySelector('.movie-carousel');
-    if (!carousel) return;
+    let carousel = collection.querySelector('.movie-carousel');
+    let type = carousel.dataset.type;
+    let genre = carousel.dataset.genre;
+    let endpoint = genre ? CONFIG.urlAPI.discover : CONFIG.urlAPI[type] || CONFIG.urlAPI.popular;
+    let params = genre ? { with_genres: genre } : {};
 
-    const type = carousel.dataset.type; // Type de films (popular, topRated, etc.)
-    const genre = carousel.dataset.genre;
-    
-    let endpoint;
-    let params = {};
-
-    if (genre) {
-        endpoint = CONFIG.urlAPI.discover;
-        params.with_genres = genre;
-    } else {
-        endpoint = CONFIG.urlAPI[type] || CONFIG.urlAPI.popular;
-    }
-
-    const films = await chargerFilms(endpoint, params);
+    let films = await chargerFilms(endpoint, params);
     await remplirCarousel(carousel, films);
     initialiserBoutonsCarousel(collection.querySelector('.carousel-container'));
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const collections = document.querySelectorAll('.collection');
-    collections.forEach(collection => initialiserCollection(collection));
+    let collections = document.querySelectorAll('.collection');
+    for (let collection of collections) {
+        await initialiserCollection(collection);
+    }
 });
