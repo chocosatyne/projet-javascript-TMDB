@@ -17,7 +17,7 @@ header {
     text-align: center;
 }
 
-header .title h1 {
+.title h1 {
     font-size: 48px;
     color: #fff;
     margin: 0;
@@ -46,13 +46,8 @@ h2 {
     gap: 20px;
     overflow-x: auto;
     scroll-behavior: smooth;
-    
     scrollbar-width: none;
     -ms-overflow-style: none;
-}
-
-.movie-carousel::-webkit-scrollbar {
-    display: none;
 }
 
 .movie-card {
@@ -112,5 +107,9 @@ h2 {
     background: #0F4C75;
 }
 
-.carousel-btn.prev { left: 0; }
-.carousel-btn.next { right: 0; }
+.carousel-btn.prev { 
+    left: 0; 
+}
+.carousel-btn.next { 
+    right: 0; 
+}
